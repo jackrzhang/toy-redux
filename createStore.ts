@@ -3,6 +3,12 @@ export default function createStore(
   preloadedState,
   enhancer
 ) {
+  if (enhancer !== undefined) {
+    // check that enhancer is a function
+
+    return enhancer(createStore)(reducer, preloadedState);
+  }
+
   let currentReducer = reducer;
   let currentState = preloadedState;
   let listeners = new Map();
