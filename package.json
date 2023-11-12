@@ -2,8 +2,12 @@
   "name": "toy-redux",
   "module": "index.ts",
   "type": "module",
+  "scripts": {
+    "test": "vitest --run"
+  },
   "devDependencies": {
-    "bun-types": "latest"
+    "bun-types": "latest",
+    "vitest": "^0.34.6"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
