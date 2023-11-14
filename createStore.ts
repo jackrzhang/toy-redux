@@ -24,8 +24,18 @@ export default function createStore(
 
   let currentReducer = reducer;
   let currentState = preloadedState;
-  let listeners = new Map();
+  let currentListeners = new Map();
+  let nextListeners = currentListeners;
   let listenerIdCounter = 0;
+
+  function snapshotListeners() {
+    if (currentListeners === nextListeners) {
+      nextListeners = new Map();
+      currentListeners.forEach((listener, listenerId) => {
+        nextListeners.set(listenerId, listener);
+      });
+    }
+  }
 
   function getState() {
     return currentState;
@@ -46,6 +56,7 @@ export default function createStore(
 
     currentState = currentReducer(currentState, action);
 
+    const listeners = (currentListeners = nextListeners);
     listeners.forEach((listener) => {
       listener();
     });
@@ -59,10 +70,12 @@ export default function createStore(
     }
 
     const listenerId = listenerIdCounter++;
-    listeners.set(listenerId, listener);
+    snapshotListeners();
+    nextListeners.set(listenerId, listener);
 
     return () => {
-      listeners.delete(listenerId);
+      snapshotListeners();
+      nextListeners.delete(listenerId);
     }
   }
 

@@ -115,20 +115,34 @@ describe('createStore', () => {
     );
   });
 
-  test('invokes current listeners with every dispatch', () => {
+  test('invokes only current listeners with every dispatch', () => {
     const store = createStore(counter);
     
     const listener1 = vi.fn();
     const listener2 = vi.fn();
+    const listener3 = vi.fn();
 
     store.subscribe(listener1);
+    
+    let listener3IsSubscribed = false;
+    store.subscribe(() => {
+      if (!listener3IsSubscribed) {
+        store.subscribe(listener3);
+        listener3IsSubscribed = true;
+      }
+
+      listener2();
+    });
+
     store.dispatch(unknownAction());
     expect(listener1.mock.calls.length).toBe(1);
-    
-    store.subscribe(listener2);
+    expect(listener2.mock.calls.length).toBe(1);
+    expect(listener3.mock.calls.length).toBe(0);
+
     store.dispatch(unknownAction());
     expect(listener1.mock.calls.length).toBe(2);
-    expect(listener2.mock.calls.length).toBe(1);
+    expect(listener2.mock.calls.length).toBe(2);
+    expect(listener3.mock.calls.length).toBe(1);
   });
 
   test('removes listener when unsubscribe is called', () => {
@@ -147,6 +161,55 @@ describe('createStore', () => {
     store.dispatch(unknownAction());
     expect(listener1.mock.calls.length).toBe(1);
     expect(listener2.mock.calls.length).toBe(2);
+  });
+
+  test('supports unsubscribing from within a listener', () => {
+    const store = createStore(counter);
+    
+    const listener1 = vi.fn();
+    const listener2 = vi.fn();
+
+    const unsubscribe1 = store.subscribe(listener1);
+    store.subscribe(() => {
+      listener2();
+      unsubscribe1();
+    });
+
+    store.dispatch(unknownAction());
+    expect(listener1.mock.calls.length).toBe(1);
+    expect(listener2.mock.calls.length).toBe(1);
+
+    store.dispatch(unknownAction());
+    expect(listener1.mock.calls.length).toBe(1);
+    expect(listener2.mock.calls.length).toBe(2);
+  });
+
+  test('nested dispatches invoke current listeners', () => {
+    const store = createStore(counter);
+
+    const listener1 = vi.fn();
+    const listener2 = vi.fn();
+    const listener3 = vi.fn();
+
+    const unsubscribe1 = store.subscribe(() => {
+      listener1();
+      expect(listener1.mock.calls.length).toBe(1);
+      expect(listener2.mock.calls.length).toBe(0);
+      expect(listener3.mock.calls.length).toBe(0);
+
+      unsubscribe1();
+      store.subscribe(listener3);
+      store.dispatch(unknownAction());
+      expect(listener1.mock.calls.length).toBe(1);
+      expect(listener2.mock.calls.length).toBe(1);
+      expect(listener3.mock.calls.length).toBe(1);
+    });
+    store.subscribe(listener2);
+
+    store.dispatch(unknownAction());
+    expect(listener1.mock.calls.length).toBe(1);
+    expect(listener2.mock.calls.length).toBe(2);
+    expect(listener3.mock.calls.length).toBe(1);
   });
 
   test('throws if listener is not a function', () => {
