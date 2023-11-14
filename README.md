@@ -1,7 +1,7 @@
 # toy-redux
 
 Not implemented:
-- `dispatch` may be called from a change listener
+- Support subscribing or unsubscribing from a change listener
 - `Store` is also an `Observable`
 
 TODO:
