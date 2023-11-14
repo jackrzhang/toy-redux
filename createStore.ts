@@ -1,10 +1,23 @@
+const INIT = 'INIT\\' + Math.random.toString();
+
 export default function createStore(
   reducer,
-  preloadedState,
-  enhancer
+  preloadedState?,
+  enhancer?
 ) {
+  if (typeof reducer !== 'function') {
+    throw new Error('Expected the reducer to be a function.');
+  }
+
+  if (typeof preloadedState === 'function' && enhancer === undefined) {
+    enhancer = preloadedState;
+    preloadedState = undefined;
+  }
+
   if (enhancer !== undefined) {
-    // check that enhancer is a function
+    if (typeof enhancer !== 'function') {
+      throw new Error('Expected the enhancer to be a function.');
+    }
 
     return enhancer(createStore)(reducer, preloadedState);
   }
@@ -19,17 +32,25 @@ export default function createStore(
   }
 
   function dispatch(action) {
-    // check if action is plain object
+    if (!isPlainObject(action)) {
+      throw new Error('Expected the action to be a plain object.');
+    }
 
-    // check that action.type is not undefined
+    if (action.type === undefined) {
+      throw new Error('Expected action.type to not be undefined.');
+    }
 
-    // check that action.type is a string
+    if (typeof action.type !== 'string') {
+      throw new Error('Expected action.type to be a string.');
+    }
 
     currentState = currentReducer(currentState, action);
 
     listeners.forEach((listener) => {
       listener();
     });
+
+    return action;
   }
 
   function subscribe(listener) {
@@ -42,10 +63,14 @@ export default function createStore(
   }
 
   function replaceReducer(nextReducer) {
-    // check that nextReducer is a function
+    if (typeof nextReducer !== 'function') {
+      throw new Error('Expected the next reducer to be a function.')
+    }
 
     currentReducer = nextReducer;
   }
+
+  dispatch({ type: INIT });
   
   return {
     getState,
@@ -53,4 +78,11 @@ export default function createStore(
     subscribe,
     replaceReducer
   };
+}
+
+function isPlainObject(value) {
+  if (value == null) return false;
+
+  const proto = Object.getPrototypeOf(value);
+  return proto === null || proto === Object.prototype;
 }
