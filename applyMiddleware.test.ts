@@ -58,6 +58,20 @@ describe('applyMiddleware', () => {
     });
   });
 
+  test('multiple arguments to middleware dispatch calls are passed through', () => {
+    const spy = vi.fn();
+    const extraArgs = ['foo', 'bar'];
+    const testMiddleware = () => (next) => (action, ...args) => {
+      spy(...args);
+      return next(action);
+    };
+
+    const store = createStore(counter, applyMiddleware(testMiddleware));
+    store.dispatch(count(), ...extraArgs);
+
+    expect(spy.mock.calls[0]).toEqual(extraArgs);
+  });
+
   test('throws if dispatch is called while constructing middleware', () => {
     const dispatchingMiddleware = ({ dispatch }) => {
       dispatch();

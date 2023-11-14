@@ -11,7 +11,7 @@ export default function applyMiddleware(...middlewares) {
     const middlewareAPI = {
       getState: store.getState,
       // Use a closure to delay binding to the final dispatch
-      dispatch: (action) => dispatch(action)
+      dispatch: (action, ...args) => dispatch(action, ...args)
     };
 
     const middlewareChain = middlewares.map((middleware) => middleware(middlewareAPI));
