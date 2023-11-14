@@ -149,6 +149,13 @@ describe('createStore', () => {
     expect(listener2.mock.calls.length).toBe(2);
   });
 
+  test('throws if listener is not a function', () => {
+    const store = createStore(counter);
+    expect(() => store.subscribe(null)).toThrow(
+      'Expected the listener to be a function.'
+    );
+  });
+
   test('throws if nextReducer is not a function', () => {
     const store = createStore(counter);
     expect(() => store.replaceReducer(null)).toThrow(

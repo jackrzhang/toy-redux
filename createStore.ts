@@ -54,6 +54,10 @@ export default function createStore(
   }
 
   function subscribe(listener) {
+    if (typeof listener !== 'function') {
+      throw new Error('Expected the listener to be a function.');
+    }
+
     const listenerId = listenerIdCounter++;
     listeners.set(listenerId, listener);
 
@@ -64,7 +68,7 @@ export default function createStore(
 
   function replaceReducer(nextReducer) {
     if (typeof nextReducer !== 'function') {
-      throw new Error('Expected the next reducer to be a function.')
+      throw new Error('Expected the next reducer to be a function.');
     }
 
     currentReducer = nextReducer;
