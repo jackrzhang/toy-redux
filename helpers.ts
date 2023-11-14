@@ -1,7 +1,5 @@
 // Helpers for testing
 
-import { start } from "repl";
-
 // Action types 
 
 const COUNT = 'COUNT';
@@ -20,9 +18,12 @@ export function count() {
 export function countAsync() {
   return (dispatch) => {
     dispatch(startAsync());
-    setTimeout(() => {
-      dispatch(finishAsync());
-    }, 10);
+    return new Promise<void>((resolve) => {
+      setTimeout(() => {
+        dispatch(finishAsync());
+        resolve();
+      }, 0);
+    });
   }
 }
 
@@ -81,5 +82,17 @@ export function asyncCounter(state = initialAsyncCounterState, action) {
       }
     default:
       return state;
+  }
+}
+
+// Middleware
+
+export function thunk({ dispatch, getState }) {
+  return (next) => (action) => {
+    if (typeof action === 'function') {
+      return action(dispatch, getState);
+    }
+
+    return next(action);
   }
 }

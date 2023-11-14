@@ -1,7 +1,7 @@
 import compose from './compose';
 
 export default function applyMiddleware(...middlewares) {
-  return (createStore) => (reducer, preloadedState) => {
+  return (createStore) => (reducer, preloadedState?) => {
     const store = createStore(reducer, preloadedState);
 
     let dispatch = () => {
